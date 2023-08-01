@@ -1,25 +1,71 @@
-import logo from './logo.svg';
+//import logo from './logo.svg';
 import './App.css';
+import React from 'react';
+import {Paper, List, Container} from "@material-ui/core";
+import ToDo from './ToDo';
+import AddToDo from './AddtoDo';
+import { call } from './service/ApiService';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+    constructor(props){
+      super(props);
+      // 여러 개의 객체를 생성해서 state에 items라는 이름으로 저장
+      this.state = {items:[]};
+    }
+    
+    // 컴포넌트가 메모리 할당을 한 후 출력하기 전에 호출되는 메서드 
+    componentDidMount(){
+      // 데이터를 가져오는 API 요청을 수행
+      call("/todo", "GET", null)
+      .then((response) => this.setState({items:response.list}))
+    }
+
+
+    // 데이터 추가를 위한 함수
+    add = (item) => {
+        item.user_id = 'sbin'
+        call("/todo", "POST", item)
+        .then((response) => this.setState({items:response.list}))
+    }
+
+    // 데이터를 삭제하는 함수
+    delete = (item) => {
+      item.user_id = 'sbin'
+      call("/todo", "DELETE", item)
+      .then((response) => this.setState({items:response.list}))
+    }
+
+    // 데이터를 수정하는 함수
+    update = (item) => {
+      item.user_id = 'sbin'
+      call("/todo", "PUT", item)
+      .then((response) => this.setState({items:response.list}))
+
+    }
+
+    render(){
+      // map: 데이터의 모임을 순회하면서 함수를 적용해 함수의 리턴 값을 가지고
+      // 데이터의 모임을 만들어주는 함수
+      // 데이터 변환에 활용
+      var todoItems = this.state.items.length > 0 && (
+        <Paper style ={{margin:16}}>
+            <List> 
+              {this.state.items.map((item, idx) => (
+                <ToDo item={item} key={item.id} delete={this.delete}
+                update={this.update} />
+              ))}
+            </List>
+        </Paper>
+      )
+      return(
+        <div className="App"> 
+          <Container maxWidth="md">
+            <AddToDo add={this.add}/>
+          </Container>
+          {todoItems}
+        </div>
+      )
+    }
 }
 
 export default App;
